@@ -135,7 +135,7 @@ def draw_graph(graph, path=None, targets=None, distance=0, color="r", a_sweep=No
     )
     plt.show()
 
-def draw_time(time_a, time_b, deviation, nodes, comparisons, b_label="Brute", time_c=None, c_label=None, time_d=None, d_label=None, time_e=None, e_label=None, time_f=None, f_label=None, time_g=None, g_label=None, time_h=None, h_label=None, time_i=None, i_label=None):
+def draw_time(time_a, time_b, deviation, nodes, comparisons, b_label="Brute", time_c=None, c_label=None, time_d=None, d_label=None, time_e=None, e_label=None, time_f=None, f_label=None, time_g=None, g_label=None, time_h=None, h_label=None, time_i=None, i_label=None, time_j = None, j_label = None):
     plt.figure()
 
     if time_c:
@@ -153,7 +153,9 @@ def draw_time(time_a, time_b, deviation, nodes, comparisons, b_label="Brute", ti
     if time_h:
         plt.plot(nodes, time_h, marker='d', label=h_label, color="gold")
     if time_i:
-        plt.plot(nodes, time_i, marker='d', label=i_label, color="darkred")
+        plt.plot(nodes, time_i, marker='+', label=i_label, color="darkred")
+    if time_j:
+        plt.plot(nodes, time_j, marker='+', label=j_label, color="cyan")
 
     plt.xlabel("Input Size (N)")
     plt.ylabel("Execution Time (seconds)")
@@ -179,7 +181,7 @@ def draw_time(time_a, time_b, deviation, nodes, comparisons, b_label="Brute", ti
     #plt.grid(True)
     #plt.show()
 
-def draw_deviation(n, a: dict[int, list[float]], b: dict[int, list[float]], b_label, c_label = None, c = None, d_label = None, d = None, e_label = None, e = None, f = None, f_label = None, g = None, g_label = None):
+def draw_deviation(n, a: dict[int, list[float]], b: dict[int, list[float]], b_label, c_label = None, c = None, d_label = None, d = None, e_label = None, e = None, f = None, f_label = None, g = None, g_label = None, h = None, h_label = None, i = None, i_label = None, j = None, j_label = None):
     """
     Parameters:
     - n: Amount of nodes
@@ -198,22 +200,34 @@ def draw_deviation(n, a: dict[int, list[float]], b: dict[int, list[float]], b_la
         f = {ns: [] for ns in a.keys()}
     if not g:
         g = {ns: [] for ns in a.keys()}
+    if not h:
+        h = {ns: [] for ns in a.keys()}
+    if not i:
+        i = {ns: [] for ns in a.keys()}
+    if not j:
+        j = {ns: [] for ns in a.keys()}
     b_devi = []
     c_devi = []
     d_devi = []
     e_devi = []
     f_devi = []
     g_devi = []
+    h_devi = []
+    i_devi = []
+    j_devi = []
     distances = {}
     for o_n in a.keys():
-        distances[o_n] = (a[o_n], b[o_n], c[o_n], d[o_n], e[o_n], f[o_n], g[o_n])
-    for key, (o_dist, b_dist, c_dist, d_dist, e_dist, f_dist, g_dist) in distances.items():
+        distances[o_n] = (a[o_n], b[o_n], c[o_n], d[o_n], e[o_n], f[o_n], g[o_n], h[o_n], i[o_n], j[o_n])
+    for key, (o_dist, b_dist, c_dist, d_dist, e_dist, f_dist, g_dist, h_dist, i_dist, j_dist) in distances.items():
         _b_devi = []
         _c_devi = []
         _d_devi = []
         _e_devi = []
         _f_devi = []
         _g_devi = []
+        _h_devi = []
+        _i_devi = []
+        _j_devi = []
         for i, dist in enumerate(o_dist):
             if b_dist:
                 _b_devi.append(b_dist[i]/dist - 1)
@@ -227,12 +241,21 @@ def draw_deviation(n, a: dict[int, list[float]], b: dict[int, list[float]], b_la
                 _f_devi.append(f_dist[i]/dist - 1)
             if g_dist:
                 _g_devi.append(g_dist[i]/dist - 1)
+            if h_dist:
+                _h_devi.append(h_dist[i]/dist - 1)
+            if i_dist:
+                _i_devi.append(i_dist[i]/dist - 1)
+            if j_dist:
+                _j_devi.append(j_dist[i]/dist - 1)
         b_devi.append(np.mean(_b_devi))
         c_devi.append(np.mean(_c_devi))
         d_devi.append(np.mean(_d_devi))
         e_devi.append(np.mean(_e_devi))
         f_devi.append(np.mean(_f_devi))
         g_devi.append(np.mean(_g_devi))
+        h_devi.append(np.mean(_h_devi))
+        i_devi.append(np.mean(_i_devi))
+        j_devi.append(np.mean(_j_devi))
     plt.figure()
 
     #plt.plot(n, optimal, marker='o', label="Optimal")
@@ -248,6 +271,12 @@ def draw_deviation(n, a: dict[int, list[float]], b: dict[int, list[float]], b_la
         plt.plot(n, f_devi, marker='D', label=f_label, color="olive")
     if g_devi:
         plt.plot(n, g_devi, marker='d', label=g_label, color="cyan")
+    if h_devi:
+        plt.plot(n, h_devi, marker='+', label=h_label, color="yellow")
+    if i_devi:
+        plt.plot(n, i_devi, marker='+', label=i_label, color="lime")
+    if j_devi:
+        plt.plot(n, j_devi, marker='o', label=j_label, color="cyan")
 
     plt.xlabel("Input Size (N)")
     plt.ylabel("Average Deviation %")
@@ -260,7 +289,7 @@ def draw_deviation(n, a: dict[int, list[float]], b: dict[int, list[float]], b_la
     plt.grid(True)
     plt.show()
 
-def draw_accuracy(n, a: dict[int, tuple[int, int, int]], b: dict[int, tuple[int, int, int]], a_label, b_label, c=None, c_label=None, d=None, d_label=None, e=None, e_label=None, f=None, f_label=None, g=None, g_label=None, h=None, h_label= None):
+def draw_accuracy(n, a: dict[int, tuple[int, int, int]], b: dict[int, tuple[int, int, int]], a_label, b_label, c=None, c_label=None, d=None, d_label=None, e=None, e_label=None, f=None, f_label=None, g=None, g_label=None, h=None, h_label= None, i=None, i_label=None, j=None, j_label=None):
     a_same = [vars[1]/sum(vars) for vars in a.values()]
     b_same = [vars[1]/sum(vars) for vars in b.values()]
     if c:
@@ -275,6 +304,10 @@ def draw_accuracy(n, a: dict[int, tuple[int, int, int]], b: dict[int, tuple[int,
         g_same = [vars[1]/sum(vars) for vars in g.values()]
     if h:
         h_same = [vars[1]/sum(vars) for vars in h.values()]
+    if i:
+        i_same = [vars[1]/sum(vars) for vars in i.values()]
+    if j:
+        j_same = [vars[1]/sum(vars) for vars in j.values()]
 
     plt.figure()
 
@@ -289,9 +322,13 @@ def draw_accuracy(n, a: dict[int, tuple[int, int, int]], b: dict[int, tuple[int,
     if f:
         plt.plot(n, f_same, marker='d', label=f_label, color="magenta")
     if g:
-        plt.plot(n, f_same, marker='d', label=g_label, color="gold")
+        plt.plot(n, g_same, marker='d', label=g_label, color="gold")
     if h:
-        plt.plot(n, f_same, marker='d', label=h_label, color="darkred")
+        plt.plot(n, h_same, marker='d', label=h_label, color="darkred")
+    if i:
+        plt.plot(n, i_same, marker='+', label=i_label, color="lime")
+    if j:
+        plt.plot(n, j_same, marker='+', label=j_label, color="pink")
 
     plt.xlabel("Input Size (N)")
     plt.ylabel("Exact Optimal Routes in %")

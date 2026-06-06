@@ -76,6 +76,9 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
     e_time = []
     f_time = []
     g_time = []
+    h_time = []
+    i_time = []
+    j_time = []
     deviation = []
     a_acc = {}
     b_acc = {}
@@ -84,12 +87,18 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
     e_acc = {}
     f_acc = {}
     g_acc = {}
+    h_acc = {}
+    i_acc = {}
+    j_acc = {}
     a_vars = {}
     b_vars = {}
     d_vars = {}
     e_vars = {}
     f_vars = {}
     g_vars = {}
+    h_vars = {}
+    i_vars = {}
+    j_vars = {}
     for n in nodes:
         v1_faster, v1_slower, v1_same = 0, 0, 0
         v2_faster, v2_slower, v2_same = 0, 0, 0
@@ -97,6 +106,9 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
         v4_faster, v4_slower, v4_same = 0, 0, 0
         v5_faster, v5_slower, v5_same = 0, 0, 0
         v6_faster, v6_slower, v6_same = 0, 0, 0
+        v7_faster, v7_slower, v7_same = 0, 0, 0
+        v8_faster, v8_slower, v8_same = 0, 0, 0
+        v9_faster, v9_slower, v9_same = 0, 0, 0
         _a_time = []
         _b_time = []
         _c_time = []
@@ -104,12 +116,18 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
         _e_time = []
         _f_time = []
         _g_time = []
+        _h_time = []
+        _i_time = []
+        _j_time = []
         v1_devi = []
         v2_devi = []
         v3_devi = []
         v4_devi = []
         v5_devi = []
         v6_devi = []
+        v7_devi = []
+        v8_devi = []
+        v9_devi = []
 
         for i in tqdm(range(comparisons), desc=f"Comparing Algorithms... for N={n}"):
             graph = file_read("nodes_v2.csv")
@@ -123,7 +141,6 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
                         break
             target_nodes: list[Node] = [graph.node_get(target) for target in targets]
             start: Node = target_nodes[0]
-            target_nodes.append(start)
 
             # Ferenius V1 -----------------------
             a_time_start = time.perf_counter()
@@ -207,11 +224,55 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
             f_time_end = time.perf_counter()
             # ----------------------------------------------
 
+            # Ferenius V6 --------------------------------
+            i_time_start = time.perf_counter()
+            i_route_nodes_xy = graph.ferenius(start, target_nodes, version=6)
+            i_label = "V6"
+            route_x, distance_x = graph.create_route(i_route_nodes_xy[0])
+            route_y, distance_y = graph.create_route(i_route_nodes_xy[1])
+            i_r = 0
+            if distance_x < distance_y:
+                i_route = route_x
+                i_dist = distance_x
+            else:
+                i_route = route_y
+                i_dist = distance_y
+                i_r = 1
+            i_time_end = time.perf_counter()
+            # ----------------------------------------------
+
+            # Ferenius V7 --------------------------------
+            j_time_start = time.perf_counter()
+            j_route_nodes_xy = graph.ferenius(start, target_nodes, version=7)
+            j_label = "V7"
+            route_x, distance_x = graph.create_route(j_route_nodes_xy[0], 7)
+            route_y, distance_y = graph.create_route(j_route_nodes_xy[1], 7)
+            j_r = 0
+            if distance_x < distance_y:
+                j_route = route_x
+                j_dist = distance_x
+            else:
+                j_route = route_y
+                j_dist = distance_y
+                j_r = 1
+            j_time_end = time.perf_counter()
+            # ----------------------------------------------
+
             # NN --------------------------------
             g_time_start = time.perf_counter()
             g_route, g_dist = graph.nn(start, target_nodes)
             g_label = "NN"
             g_time_end = time.perf_counter()
+            # ----------------------------------------------
+
+            # 2-opt --------------------------------
+            h_time_start = time.perf_counter()
+            h_route_nodes = graph.sep_two_opt(start, target_nodes)
+            h_route, h_dist = graph.create_route(h_route_nodes)
+            h_route_nodes_xy = h_route_nodes, h_route_nodes
+            h_r = 0
+            h_label = "2-opt"
+            h_time_end = time.perf_counter()
             # ----------------------------------------------
 
             _a_time.append(a_time_end-a_time_start)
@@ -221,11 +282,14 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
             _e_time.append(e_time_end-e_time_start)
             _f_time.append(f_time_end-f_time_start)
             _g_time.append(g_time_end-g_time_start)
+            _h_time.append(h_time_end-h_time_start)
+            _i_time.append(i_time_end-i_time_start)
+            _j_time.append(j_time_end-j_time_start)
 
             #print(comp_route, comp_dist)
             #if distance != comp_dist:
             if draw:
-                gui.draw_graph(graph, comp_route, route_nodes_xy[comp_r], comp_dist, "red", comp_r, c_route, c_dist, "green", perm, e_route, e_dist, "blue", e_route_nodes_xy[e_r], e_r)
+                gui.draw_graph(graph, d_route, d_route_nodes_xy[d_r], d_dist, "red", d_r, c_route, c_dist, "green", perm, e_route, e_dist, "blue", e_route_nodes_xy[e_r], e_r)
             #gui.draw_graph(graph, route, route_nodes, distance)
 
             # Slower, Same, Faster
@@ -269,6 +333,22 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
             else:
                 v5_faster += 1
 
+            # V6
+            if f_dist > c_dist:
+                v8_slower += 1
+            elif f_dist == c_dist:
+                v8_same += 1
+            else:
+                v8_faster += 1
+
+            # V7
+            if f_dist > c_dist:
+                v9_slower += 1
+            elif f_dist == c_dist:
+                v9_same += 1
+            else:
+                v9_faster += 1
+
             # NN
             if g_dist > c_dist:
                 v6_slower += 1
@@ -276,6 +356,14 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
                 v6_same += 1
             else:
                 v6_faster += 1
+
+            # 2-opt
+            if h_dist > c_dist:
+                v7_slower += 1
+            elif h_dist == c_dist:
+                v7_same += 1
+            else:
+                v7_faster += 1
 
             # Add deviations
             if (distance/c_dist)-1 != 0:
@@ -290,6 +378,12 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
                 v5_devi.append(calc_devi(f_dist, c_dist))
             if (g_dist/c_dist)-1 != 0:
                 v6_devi.append(calc_devi(g_dist, c_dist))
+            if (h_dist/c_dist)-1 != 0:
+                v7_devi.append(calc_devi(h_dist, c_dist))
+            if (i_dist/c_dist)-1 != 0:
+                v8_devi.append(calc_devi(i_dist, c_dist))
+            if (j_dist/c_dist)-1 != 0:
+                v9_devi.append(calc_devi(j_dist, c_dist))
 
             # Add accuracies
             if not a_acc.get(n):
@@ -320,14 +414,29 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
                 g_acc[n] = [g_dist]
             else:
                 g_acc[n].append(g_dist)
+            if not h_acc.get(n):
+                h_acc[n] = [h_dist]
+            else:
+                h_acc[n].append(h_dist)
+            if not i_acc.get(n):
+                i_acc[n] = [i_dist]
+            else:
+                i_acc[n].append(i_dist)
+            if not j_acc.get(n):
+                j_acc[n] = [j_dist]
+            else:
+                j_acc[n].append(j_dist)
 
             logger.log_csv(f"data/ferenius/{n}.csv", [a_time_end-a_time_start, distance, targets, route])
             logger.log_csv(f"data/ferenius_v2/{n}.csv", [b_time_end-b_time_start, comp_dist, targets, comp_route])
             logger.log_csv(f"data/ferenius_v3/{n}.csv", [d_time_end-d_time_start, d_dist, targets, d_route])
             logger.log_csv(f"data/ferenius_v4/{n}.csv", [e_time_end-e_time_start, e_dist, targets, e_route])
             logger.log_csv(f"data/ferenius_v5/{n}.csv", [f_time_end-f_time_start, f_dist, targets, f_route])
+            logger.log_csv(f"data/ferenius_v6/{n}.csv", [i_time_end-i_time_start, i_dist, targets, i_route])
+            logger.log_csv(f"data/ferenius_v7/{n}.csv", [j_time_end-j_time_start, j_dist, targets, j_route])
             logger.log_csv(f"data/brute/{n}.csv", [c_time_end-c_time_start, c_dist, targets, c_route])
             logger.log_csv(f"data/nn/{n}.csv", [g_time_end-g_time_start, g_dist, targets, g_route])
+            logger.log_csv(f"data/2opt/{n}.csv", [h_time_end-h_time_start, h_dist, targets, h_route])
 
         if not v1_devi:
             v1_devi.append(0)
@@ -341,6 +450,12 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
             v5_devi.append(0)
         if not v6_devi:
             v6_devi.append(0)
+        if not v7_devi:
+            v7_devi.append(0)
+        if not v8_devi:
+            v8_devi.append(0)
+        if not v9_devi:
+            v9_devi.append(0)
 
         print("\nFerenius-----------------------")
         print(f"Slower | Same | Faster (N={n})")
@@ -372,11 +487,29 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
         print(f"Average deviation: {(sum(v5_devi))/comparisons}")
         print(f"Min: {min(v5_devi)}\nMax: {max(v5_devi)}")
 
+        print("\nFerenius V6-----------------------")
+        print(f"Slower | Same | Faster (N={n})")
+        print(f"{v8_slower}       {v8_same}    {v8_faster}")
+        print(f"Average deviation: {(sum(v8_devi))/comparisons}")
+        print(f"Min: {min(v8_devi)}\nMax: {max(v8_devi)}")
+
+        print("\nFerenius V7-----------------------")
+        print(f"Slower | Same | Faster (N={n})")
+        print(f"{v9_slower}       {v9_same}    {v9_faster}")
+        print(f"Average deviation: {(sum(v9_devi))/comparisons}")
+        print(f"Min: {min(v9_devi)}\nMax: {max(v9_devi)}")
+
         print("\nNearest Neighbour-----------------------")
         print(f"Slower | Same | Faster (N={n})")
         print(f"{v6_slower}       {v6_same}    {v6_faster}")
         print(f"Average deviation: {(sum(v6_devi))/comparisons}")
         print(f"Min: {min(v6_devi)}\nMax: {max(v6_devi)}")
+
+        print("\n2-opt-----------------------")
+        print(f"Slower | Same | Faster (N={n})")
+        print(f"{v7_slower}       {v7_same}    {v7_faster}")
+        print(f"Average deviation: {(sum(v7_devi))/comparisons}")
+        print(f"Min: {min(v7_devi)}\nMax: {max(v7_devi)}")
 
         a_time.append(np.mean(_a_time))
         b_time.append(np.mean(_b_time))
@@ -385,6 +518,9 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
         e_time.append(np.mean(_e_time))
         f_time.append(np.mean(_f_time))
         g_time.append(np.mean(_g_time))
+        h_time.append(np.mean(_h_time))
+        i_time.append(np.mean(_i_time))
+        j_time.append(np.mean(_j_time))
         deviation.append(np.mean(v1_devi))
         a_vars[n] = (v1_slower, v1_same, v1_faster)
         b_vars[n] = (v2_slower, v2_same, v2_faster)
@@ -392,10 +528,13 @@ def ferenius_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
         e_vars[n] = (v4_slower, v4_same, v4_faster)
         f_vars[n] = (v5_slower, v5_same, v5_faster)
         g_vars[n] = (v6_slower, v6_same, v6_faster)
+        h_vars[n] = (v7_slower, v7_same, v7_faster)
+        i_vars[n] = (v8_slower, v8_same, v8_faster)
+        j_vars[n] = (v9_slower, v9_same, v9_faster)
         #logger.log("log.txt", f"{v1_slower, v1_same, v1_faster} | {np.mean(v1_devi)} | {min(v1_devi), max(v1_devi)} | {np.mean(_a_time), np.mean(_b_time)} | {n} | {route_nodes}\n")
-    gui.draw_time(a_time, b_time, deviation, nodes, comparisons, b_label, c_time, c_label, d_time, d_label, e_time, e_label, f_time, f_label, g_time, g_label)
-    gui.draw_deviation(nodes, a_acc, b_acc, b_label, a_label, c_acc, d_label, d_acc, e_label, e_acc, f_acc, f_label, g_acc, g_label)
-    gui.draw_accuracy(nodes, a_vars, b_vars, "Ferenius", b_label, d_vars, d_label, e_vars, e_label, f_vars, f_label, g_vars, g_label)
+    gui.draw_time(a_time, b_time, deviation, nodes, comparisons, b_label, c_time, c_label, d_time, d_label, e_time, e_label, f_time, f_label, g_time, g_label, h_time, h_label, i_time, i_label, j_time, j_label)
+    gui.draw_deviation(nodes, a_acc, b_acc, b_label, a_label, c_acc, d_label, d_acc, e_label, e_acc, f_acc, f_label, g_acc, g_label, h_acc, h_label, i_acc, i_label, j_acc, j_label)
+    gui.draw_accuracy(nodes, a_vars, b_vars, "Ferenius", b_label, d_vars, d_label, e_vars, e_label, f_vars, f_label, g_vars, g_label, h_vars, h_label, i_vars, i_label, j_vars, j_label)
 
 def algo_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
     def calc_devi(a, b):
@@ -437,7 +576,6 @@ def algo_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
                         break
             target_nodes: list[Node] = [graph.node_get(target) for target in targets]
             start: Node = target_nodes[0]
-            target_nodes.append(start)
 
             # Brute --------------------------------
             a_time_start = time.perf_counter()
@@ -450,47 +588,44 @@ def algo_compare(nodes: list[int] = [5], comparisons: int = 3, draw=False):
             # ----------------------------------------------
 
             # Ferenius V7 --------------------------------
-            #b_time_start = time.perf_counter()
-            #b_route_nodes_xy = graph.ferenius(start, target_nodes, version=2)
-            #b_label = "V7"
-            #route_x, distance_x = graph.create_route(b_route_nodes_xy[0], 7)
-            #route_y, distance_y = graph.create_route(b_route_nodes_xy[1], 7)
-            #b_r = 0
-            #if distance_x < distance_y:
-            #    b_route = route_x
-            #    b_dist = distance_x
-            #else:
-            #    b_route = route_y
-            #    b_dist = distance_y
-            #    b_r = 1
-            #b_time_end = time.perf_counter()
-            # ----------------------------------------------
-
-            # 2-opt --------------------------------
             b_time_start = time.perf_counter()
-            b_label = "2-opt"
-            b_route_nodes = graph.sep_two_opt(start, target_nodes)
-            b_route, b_dist = graph.create_route(b_route_nodes)
-            b_route_nodes_xy = b_route_nodes, b_route_nodes
+            b_route_nodes_xy = graph.ferenius(start, target_nodes, version=2)
+            b_label = "V7"
+            route_x, distance_x = graph.create_route(b_route_nodes_xy[0], 7)
+            route_y, distance_y = graph.create_route(b_route_nodes_xy[1], 7)
             b_r = 0
+            if distance_x < distance_y:
+                b_route = route_x
+                b_dist = distance_x
+            else:
+                b_route = route_y
+                b_dist = distance_y
+                b_r = 1
             b_time_end = time.perf_counter()
             # ----------------------------------------------
 
-
             # Ferenius V2 --------------------------------
+            #c_time_start = time.perf_counter()
+            #c_route_nodes_xy = graph.ferenius(start, target_nodes, version=2)
+            #c_label = "V2"
+            #route_x, distance_x = graph.create_route(c_route_nodes_xy[0])
+            #route_y, distance_y = graph.create_route(c_route_nodes_xy[1])
+            #c_r = 0
+            #if distance_x < distance_y:
+            #    c_route = route_x
+            #    c_dist = distance_x
+            #else:
+            #    c_route = route_y
+            #    c_dist = distance_y
+            #    c_r = 1
+            #c_time_end = time.perf_counter()
+            # ----------------------------------------------
+
+            # Held-Karp --------------------------------
             c_time_start = time.perf_counter()
-            c_route_nodes_xy = graph.ferenius(start, target_nodes, version=2)
-            c_label = "V2"
-            route_x, distance_x = graph.create_route(c_route_nodes_xy[0])
-            route_y, distance_y = graph.create_route(c_route_nodes_xy[1])
-            c_r = 0
-            if distance_x < distance_y:
-                c_route = route_x
-                c_dist = distance_x
-            else:
-                c_route = route_y
-                c_dist = distance_y
-                c_r = 1
+            c_route_nodes = graph.held_karp(start, target_nodes)
+            c_route, c_dist = graph.create_route(c_route_nodes)
+            c_label = "Held-Karp"
             c_time_end = time.perf_counter()
             # ----------------------------------------------
 
@@ -581,15 +716,144 @@ def graph_file():
     nodes_2 = log_read("log_comp50_3-10_v2.txt")
     gui.draw_time(nodes_1.values(), nodes_2.values(), [0], nodes_1.keys(), 50, "Ferenius v2")
 
+def load_tot_layout(mode = "central"):
+    data: dict[int, dict[str, list[list[float], list[float], list[float], int]]] = {}
+    central_targets = ["41", "76", "74", "77", "43", "42", "100", "29", "101", "102", "52"]
+    border_targets = ["15", "12", "92", "11", "14", "16", "17", "90", "18", "91", "33", "104", "35",
+    "36", "37", "38", "85", "45", "96", "84", "46", "83", "47", "82", "81", "85", "70", "96", "97",
+    "69", "68", "67", "66", "65", "88", "64", "63", "89", "60", "59", "58", "99", "57", "56", "53",
+    "54", "79", "40", "78", "76", "39", "74", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "11"]
+    layout_targets = central_targets if mode == "central" else border_targets
+    for file in ["brute", "ferenius", "ferenius_v2", "ferenius_v3", "ferenius_v4", "ferenius_v5", "ferenius_v6", "ferenius_v7", "nn", "2opt"]:
+        for n in range(3, 11):
+            #print(file, n)
+            times, distances, targets, routes = logger.csv_load(f"data/{file}/{n}.csv", "all")
+            #print(data)
+            _times, _distances = [], []
+            for i, targets in enumerate(targets):
+                if targets[0] not in layout_targets:
+                    continue
+                _times.append(times[i])
+                _distances.append(distances[i])
+            
+            if file != "brute":
+                brute_dist = np.array(data[n]["brute"][0][1])
+                length = len(brute_dist)
+                file_dist = np.array(_distances[:length])
+                deviations = (file_dist - brute_dist) / brute_dist
+                opt = 0
+                for devi in deviations:
+                    if devi < 0.0001:
+                        opt += 1
+            else:
+                deviations = np.zeros_like(_times)
+                opt = len(_times)
+            if data.get(n):
+                n_dict = data.get(n)
+                if n_dict.get(file):
+                    n_dict[file].append([_times, _distances, deviations, opt])
+                else:
+                    n_dict[file] = [[_times, _distances, deviations, opt]]
+            else:
+                data[n] = {file: [[_times, _distances, deviations, opt]]}
+    
+    # Times:
+    time_brute = [np.mean(algos["brute"][0][0]) for algos in data.values()]
+    time_nn = [np.mean(algos["nn"][0][0]) for algos in data.values()]
+    time_topt = [np.mean(algos["2opt"][0][0]) for algos in data.values()]
+    time_ferenius = [np.mean(algos["ferenius"][0][0]) for algos in data.values()]
+    time_ferenius_v2 = [np.mean(algos["ferenius_v2"][0][0]) for algos in data.values()]
+    time_ferenius_v3 = [np.mean(algos["ferenius_v3"][0][0]) for algos in data.values()]
+    time_ferenius_v4 = [np.mean(algos["ferenius_v4"][0][0]) for algos in data.values()]
+    time_ferenius_v5 = [np.mean(algos["ferenius_v5"][0][0]) for algos in data.values()]
+    time_ferenius_v6 = [np.mean(algos["ferenius_v5"][0][0]) for algos in data.values()]
+    time_ferenius_v7 = [np.mean(algos["ferenius_v5"][0][0]) for algos in data.values()]
+    gui.draw_time(time_ferenius, time_ferenius_v2, 0, range(3, 11), len(data[10]["brute"][0][0]), "Ferenius V2", time_brute, "Brute", time_ferenius_v3, "Ferenius V3", time_ferenius_v4, "Ferenius V4", time_ferenius_v5, "Ferenius V5", time_nn, "Nearest Neighbor", time_topt, "2-Opt", time_ferenius_v6, "Ferenius V6", time_ferenius_v7, "Ferenius V7")
+    
+    # Deviations:
+    devi_nn = [np.mean(algos["nn"][0][2])*100 for algos in data.values()]
+    devi_ferenius = [np.mean(algos["ferenius"][0][2])*100 for algos in data.values()]
+    devi_ferenius_v2 = [np.mean(algos["ferenius_v2"][0][2])*100 for algos in data.values()]
+    devi_ferenius_v3 = [np.mean(algos["ferenius_v3"][0][2])*100 for algos in data.values()]
+    devi_ferenius_v4 = [np.mean(algos["ferenius_v4"][0][2])*100 for algos in data.values()]
+    devi_ferenius_v5 = [np.mean(algos["ferenius_v5"][0][2])*100 for algos in data.values()]
+    devi_ferenius_v6 = [np.mean(algos["ferenius_v6"][0][2])*100 for algos in data.values()]
+    devi_ferenius_v7 = [np.mean(algos["ferenius_v7"][0][2])*100 for algos in data.values()]
+    devi_topt = [np.mean(algos["2opt"][0][2])*100 for algos in data.values()]
+    plt.figure()
+    x = range(3, 11)
+    plt.plot(x, devi_ferenius, marker="o", label="Ferenius", color="blue")
+    plt.plot(x, devi_ferenius_v2, marker="s", label="Ferenius V2", color="orange")
+    plt.plot(x, devi_ferenius_v3, marker="x", label="Ferenius V3", color="red")
+    plt.plot(x, devi_ferenius_v4, marker="h", label="Ferenius V4", color="purple")
+    plt.plot(x, devi_ferenius_v5, marker="D", label="Ferenius V5", color="olive")
+    plt.plot(x, devi_ferenius_v6, marker="+", label="Ferenius V6", color="cyan")
+    plt.plot(x, devi_ferenius_v7, marker="+", label="Ferenius V7", color="yellow")
+    plt.plot(x, devi_nn, marker="d", label="Nearest Neighbor", color="magenta")
+    plt.plot(x, devi_topt, marker="+", label="2-Opt", color="lime")
+    plt.xlabel("Input Size (N)")
+    plt.ylabel("Deviation from optimal route in %")
+    plt.title("Deviation from optimal route in %")
+    plt.legend()
+    plt.tight_layout()
+    plt.grid(True)
+    plt.show()
+
+    # Optimality:
+    acc_nn = [algos["nn"][0][3]/algos["brute"][0][3] for algos in data.values()]
+    acc_topt = [algos["2opt"][0][3]/algos["brute"][0][3] for algos in data.values()]
+    acc_ferenius = [algos["ferenius"][0][3]/algos["brute"][0][3] for algos in data.values()]
+    acc_ferenius_v2 = [algos["ferenius_v2"][0][3]/algos["brute"][0][3] for algos in data.values()]
+    acc_ferenius_v3 = [algos["ferenius_v3"][0][3]/algos["brute"][0][3] for algos in data.values()]
+    acc_ferenius_v4 = [algos["ferenius_v4"][0][3]/algos["brute"][0][3] for algos in data.values()]
+    acc_ferenius_v5 = [algos["ferenius_v5"][0][3]/algos["brute"][0][3] for algos in data.values()]
+    acc_ferenius_v6 = [algos["ferenius_v6"][0][3]/algos["brute"][0][3] for algos in data.values()]
+    acc_ferenius_v7 = [algos["ferenius_v7"][0][3]/algos["brute"][0][3] for algos in data.values()]
+    plt.figure()
+    plt.plot(x, acc_ferenius, marker="o", label="Ferenius", color="blue")
+    plt.plot(x, acc_ferenius_v2, marker="s", label="Ferenius V2", color="orange")
+    plt.plot(x, acc_ferenius_v3, marker="x", label="Ferenius V3", color="red")
+    plt.plot(x, acc_ferenius_v4, marker="h", label="Ferenius V4", color="purple")
+    plt.plot(x, acc_ferenius_v5, marker="D", label="Ferenius V5", color="olive")
+    plt.plot(x, acc_ferenius_v6, marker="+", label="Ferenius V6", color="cyan")
+    plt.plot(x, acc_ferenius_v7, marker="+", label="Ferenius V7", color="yellow")
+    plt.plot(x, acc_nn, marker="d", label="Nearest Neighbor", color="magenta")
+    plt.plot(x, acc_topt, marker="+", label="2-Opt", color="lime")
+    plt.xlabel("Input Size (N)")
+    plt.ylabel("Achieved optimal route in  %")
+    plt.title("Achieved optimal route in  %")
+    plt.legend()
+    plt.tight_layout()
+    plt.grid(True)
+    plt.show()
+
+    fields=["N", "Brute", "NN", "2opt", "Ferenius", "Ferenius V2", "Ferenius V3", "Ferenius V4", "Ferenius V5", "Ferenius V6", "Ferenius V7"]
+    with open("export_layout_time.csv", "w", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        for i in range(0, len(time_brute)):
+            writer.writerow({"N":i+3, "Brute":time_brute[i], "NN":time_nn[i], "2opt":time_topt[i], "Ferenius":time_ferenius[i], "Ferenius V2":time_ferenius_v2[i], "Ferenius V3":time_ferenius_v3[i], "Ferenius V4":time_ferenius_v4[i], "Ferenius V5":time_ferenius_v5[i], "Ferenius V6":time_ferenius_v6[i], "Ferenius V7":time_ferenius_v7[i]})
+    
+    fields=["N", "NN", "2opt", "Ferenius", "Ferenius V2", "Ferenius V3", "Ferenius V4", "Ferenius V5", "Ferenius V6", "Ferenius V7"]
+    with open("export_layout_devi.csv", "w", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        for i in range(0, len(devi_nn)):
+            writer.writerow({"N":i+3, "NN":devi_nn[i], "2opt":devi_topt[i], "Ferenius":devi_ferenius[i], "Ferenius V2":devi_ferenius_v2[i], "Ferenius V3":devi_ferenius_v3[i], "Ferenius V4":devi_ferenius_v4[i], "Ferenius V5":devi_ferenius_v5[i], "Ferenius V6":devi_ferenius_v6[i], "Ferenius V7":devi_ferenius_v7[i]})
+    with open("export_layout_acc.csv", "w", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        for i in range(0, len(acc_nn)):
+            writer.writerow({"N":i+3, "NN":acc_nn[i], "2opt":acc_topt[i], "Ferenius":acc_ferenius[i], "Ferenius V2":acc_ferenius_v2[i], "Ferenius V3":acc_ferenius_v3[i], "Ferenius V4":acc_ferenius_v4[i], "Ferenius V5":acc_ferenius_v5[i], "Ferenius V6":acc_ferenius_v6[i], "Ferenius V7":acc_ferenius_v7[i]})
+
 def load_tot():
     data: dict[int, dict[str, list[list[float], list[float], list[float], int]]] = {}
-    for file in ["brute", "ferenius", "ferenius_v2", "ferenius_v3", "ferenius_v4", "ferenius_v5", "nn"]:
+    for file in ["brute", "ferenius", "ferenius_v2", "ferenius_v3", "ferenius_v4", "ferenius_v5", "ferenius_v6", "ferenius_v7", "nn", "2opt"]:
         for n in range(3, 11):
-            times, distances = logger.csv_load(f"data_500/{file}/{n}.csv")
+            #print(file, n)
+            times, distances = logger.csv_load(f"data/{file}/{n}.csv")
             #print(data)
             if file != "brute":
                 brute_dist = np.array(data[n]["brute"][0][1])
-                file_dist = np.array(distances)
+                length = len(brute_dist)
+                file_dist = np.array(distances[:length])
                 deviations = (file_dist - brute_dist) / brute_dist
                 opt = 0
                 for devi in deviations:
@@ -610,12 +874,15 @@ def load_tot():
     # Times:
     time_brute = [np.mean(algos["brute"][0][0]) for algos in data.values()]
     time_nn = [np.mean(algos["nn"][0][0]) for algos in data.values()]
+    time_topt = [np.mean(algos["2opt"][0][0]) for algos in data.values()]
     time_ferenius = [np.mean(algos["ferenius"][0][0]) for algos in data.values()]
     time_ferenius_v2 = [np.mean(algos["ferenius_v2"][0][0]) for algos in data.values()]
     time_ferenius_v3 = [np.mean(algos["ferenius_v3"][0][0]) for algos in data.values()]
     time_ferenius_v4 = [np.mean(algos["ferenius_v4"][0][0]) for algos in data.values()]
     time_ferenius_v5 = [np.mean(algos["ferenius_v5"][0][0]) for algos in data.values()]
-    gui.draw_time(time_ferenius, time_ferenius_v2, 0, range(3, 11), len(data[10]["brute"][0][0]), "Ferenius V2", time_brute, "Brute", time_ferenius_v3, "Ferenius V3", time_ferenius_v4, "Ferenius V4", time_ferenius_v5, "Ferenius V5", time_nn, "Nearest Neighbor")
+    time_ferenius_v6 = [np.mean(algos["ferenius_v5"][0][0]) for algos in data.values()]
+    time_ferenius_v7 = [np.mean(algos["ferenius_v5"][0][0]) for algos in data.values()]
+    gui.draw_time(time_ferenius, time_ferenius_v2, 0, range(3, 11), len(data[10]["brute"][0][0]), "Ferenius V2", time_brute, "Brute", time_ferenius_v3, "Ferenius V3", time_ferenius_v4, "Ferenius V4", time_ferenius_v5, "Ferenius V5", time_nn, "Nearest Neighbor", time_topt, "2-Opt", time_ferenius_v6, "Ferenius V6", time_ferenius_v7, "Ferenius V7")
     
     # Deviations:
     devi_nn = [np.mean(algos["nn"][0][2])*100 for algos in data.values()]
@@ -624,6 +891,9 @@ def load_tot():
     devi_ferenius_v3 = [np.mean(algos["ferenius_v3"][0][2])*100 for algos in data.values()]
     devi_ferenius_v4 = [np.mean(algos["ferenius_v4"][0][2])*100 for algos in data.values()]
     devi_ferenius_v5 = [np.mean(algos["ferenius_v5"][0][2])*100 for algos in data.values()]
+    devi_ferenius_v6 = [np.mean(algos["ferenius_v6"][0][2])*100 for algos in data.values()]
+    devi_ferenius_v7 = [np.mean(algos["ferenius_v7"][0][2])*100 for algos in data.values()]
+    devi_topt = [np.mean(algos["2opt"][0][2])*100 for algos in data.values()]
     plt.figure()
     x = range(3, 11)
     plt.plot(x, devi_ferenius, marker="o", label="Ferenius", color="blue")
@@ -631,7 +901,10 @@ def load_tot():
     plt.plot(x, devi_ferenius_v3, marker="x", label="Ferenius V3", color="red")
     plt.plot(x, devi_ferenius_v4, marker="h", label="Ferenius V4", color="purple")
     plt.plot(x, devi_ferenius_v5, marker="D", label="Ferenius V5", color="olive")
+    plt.plot(x, devi_ferenius_v6, marker="+", label="Ferenius V6", color="cyan")
+    plt.plot(x, devi_ferenius_v7, marker="+", label="Ferenius V7", color="yellow")
     plt.plot(x, devi_nn, marker="d", label="Nearest Neighbor", color="magenta")
+    plt.plot(x, devi_topt, marker="+", label="2-Opt", color="lime")
     plt.xlabel("Input Size (N)")
     plt.ylabel("Deviation from optimal route in %")
     plt.title("Deviation from optimal route in %")
@@ -642,18 +915,24 @@ def load_tot():
 
     # Optimality:
     acc_nn = [algos["nn"][0][3]/algos["brute"][0][3] for algos in data.values()]
+    acc_topt = [algos["2opt"][0][3]/algos["brute"][0][3] for algos in data.values()]
     acc_ferenius = [algos["ferenius"][0][3]/algos["brute"][0][3] for algos in data.values()]
     acc_ferenius_v2 = [algos["ferenius_v2"][0][3]/algos["brute"][0][3] for algos in data.values()]
     acc_ferenius_v3 = [algos["ferenius_v3"][0][3]/algos["brute"][0][3] for algos in data.values()]
     acc_ferenius_v4 = [algos["ferenius_v4"][0][3]/algos["brute"][0][3] for algos in data.values()]
     acc_ferenius_v5 = [algos["ferenius_v5"][0][3]/algos["brute"][0][3] for algos in data.values()]
+    acc_ferenius_v6 = [algos["ferenius_v6"][0][3]/algos["brute"][0][3] for algos in data.values()]
+    acc_ferenius_v7 = [algos["ferenius_v7"][0][3]/algos["brute"][0][3] for algos in data.values()]
     plt.figure()
     plt.plot(x, acc_ferenius, marker="o", label="Ferenius", color="blue")
     plt.plot(x, acc_ferenius_v2, marker="s", label="Ferenius V2", color="orange")
     plt.plot(x, acc_ferenius_v3, marker="x", label="Ferenius V3", color="red")
     plt.plot(x, acc_ferenius_v4, marker="h", label="Ferenius V4", color="purple")
     plt.plot(x, acc_ferenius_v5, marker="D", label="Ferenius V5", color="olive")
+    plt.plot(x, acc_ferenius_v6, marker="+", label="Ferenius V6", color="cyan")
+    plt.plot(x, acc_ferenius_v7, marker="+", label="Ferenius V7", color="yellow")
     plt.plot(x, acc_nn, marker="d", label="Nearest Neighbor", color="magenta")
+    plt.plot(x, acc_topt, marker="+", label="2-Opt", color="lime")
     plt.xlabel("Input Size (N)")
     plt.ylabel("Achieved optimal route in  %")
     plt.title("Achieved optimal route in  %")
@@ -662,6 +941,22 @@ def load_tot():
     plt.grid(True)
     plt.show()
 
+    fields=["N", "Brute", "NN", "2opt", "Ferenius", "Ferenius V2", "Ferenius V3", "Ferenius V4", "Ferenius V5", "Ferenius V6", "Ferenius V7"]
+    with open("export_time.csv", "w", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        for i in range(0, len(time_brute)):
+            writer.writerow({"N":i+3, "Brute":time_brute[i], "NN":time_nn[i], "2opt":time_topt[i], "Ferenius":time_ferenius[i], "Ferenius V2":time_ferenius_v2[i], "Ferenius V3":time_ferenius_v3[i], "Ferenius V4":time_ferenius_v4[i], "Ferenius V5":time_ferenius_v5[i], "Ferenius V6":time_ferenius_v6[i], "Ferenius V7":time_ferenius_v7[i]})
+    
+    fields=["N", "NN", "2opt", "Ferenius", "Ferenius V2", "Ferenius V3", "Ferenius V4", "Ferenius V5", "Ferenius V6", "Ferenius V7"]
+    with open("export_devi.csv", "w", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        for i in range(0, len(devi_nn)):
+            writer.writerow({"N":i+3, "NN":devi_nn[i], "2opt":devi_topt[i], "Ferenius":devi_ferenius[i], "Ferenius V2":devi_ferenius_v2[i], "Ferenius V3":devi_ferenius_v3[i], "Ferenius V4":devi_ferenius_v4[i], "Ferenius V5":devi_ferenius_v5[i], "Ferenius V6":devi_ferenius_v6[i], "Ferenius V7":devi_ferenius_v7[i]})
+    with open("export_acc.csv", "w", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        for i in range(0, len(acc_nn)):
+            writer.writerow({"N":i+3, "NN":acc_nn[i], "2opt":acc_topt[i], "Ferenius":acc_ferenius[i], "Ferenius V2":acc_ferenius_v2[i], "Ferenius V3":acc_ferenius_v3[i], "Ferenius V4":acc_ferenius_v4[i], "Ferenius V5":acc_ferenius_v5[i], "Ferenius V6":acc_ferenius_v6[i], "Ferenius V7":acc_ferenius_v7[i]})
+    
 def run_ferenius(nodes: int):
     graph = file_read("nodes_v2.csv")
     graph.add_children()
@@ -696,12 +991,11 @@ def run_ferenius(nodes: int):
     gui.draw_graph(graph, e_route, e_route_nodes_xy[e_r], e_dist, "red")
 
 def main():
-    ferenius_compare(range(3, 11), 10, False)
-    #logger.csv_combine("data_100", "data_500")
-    #logger.csv_sort("data_500")
-    #algo_compare(range(3, 8), 15, False)
+    #ferenius_compare(range(3, 11), 500, False)
+    algo_compare(range(3, 11), 5, False)
     #run_ferenius(30)
     #graph_file()
     #load_tot()
+    #load_tot_layout()
 if __name__ == "__main__":
     main()

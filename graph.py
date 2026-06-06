@@ -140,7 +140,7 @@ class Graph():
                 if distance < distances[nbr]:
                     distances[nbr] = distance
                     previous_nodes[nbr] = current_node
-                    if mode == "7":
+                    if mode != "all":
                         if current_dist <= best_dist:
                             if current_node == target:
                                 if current_dist < best_dist:
@@ -153,9 +153,23 @@ class Graph():
             return (self.traverse_dji(previous_nodes, start, target), frames)
         elif mode == "7":
             return (self.traverse_dji(previous_nodes, start, target), frames)
+        elif mode == "all":
+            return distances
         else:
             return (self.traverse_dji(previous_nodes, start, target), frames)
     
+    def build_matrix(self, route, start, targets):
+        graph_dist = {}
+        for node in route:
+            distances = self.dijkstra(node, targets[-1], mode="all")
+            graph_dist[node] = {}
+
+            for other in route:
+                if other == start:
+                    continue
+                graph_dist[node][other] = distances[other]
+        return graph_dist
+
     def ferenius(self, start: Node, targets: list[Node], version: int = 1):
         def sweep(nodes, start, axis):
             if axis == "x":
@@ -237,6 +251,39 @@ class Graph():
                     break
 
             return best
+        def two_opt_graph(route):
+
+            graph_dist = self.build_matrix(route, start, targets)
+            best = route[:]
+            n = len(best)
+            improved = True
+            iters = 0
+
+            while improved:
+                improved = False
+                for i in range(1, n-2):
+                    for j in range(i+1, n-1):
+                        if j-i == 1:
+                            continue
+                        a, b = best[i-1], best[i]
+                        c, d = best[j], best[j+1]
+
+                        delta = (graph_dist[a][c]
+                                 + graph_dist[b][d]
+                                 - graph_dist[a][b]
+                                 - graph_dist[c][d])
+                        iters += 1
+                        
+                        if delta < 0:
+                            best[i:j+1] = reversed(best[i:j+1])
+                            improved = True
+                            break
+                    if improved:
+                        break
+                if iters > 1000000:
+                    break
+            return best
+
         def path_length(order):
             return sum(distance(order[i], order[i+1]) for i in range(len(order) - 1))
         def distance(a, b):
@@ -251,11 +298,66 @@ class Graph():
             sec_result = two_opt(result)
 
             return sec_result, "x" if result == order_x else "y"
+        elif version == 7:
+            return two_opt_graph(order_x), two_opt_graph(order_y)
         else:
             return two_opt(order_x), two_opt(order_y)
     
     def dials(self, start: Node, target: Node):
         pass
+
+    def held_karp(self, start: Node, targets: list[Node]):
+        dp = {}
+        distances = self.build_matrix(targets, start, targets)
+
+        # Base cases
+        for target in targets[1:]:
+            if target == start:
+                continue
+            dp[(frozenset([target]), target)] = (
+                distances[start][target], start
+            )
+        
+        # Build DP table
+        for subset_size in range(2, len(targets)):
+            for subset in itertools.combinations(targets[1:], subset_size):
+                subset = frozenset(subset)
+
+                for k in subset:
+                    prev_subset = subset - {k}
+
+                    best_cost = float("inf")
+                    best_parent = None
+
+                    for m in prev_subset:
+                        cost = (dp[(prev_subset, m)][0] + distances[m][k])
+                        if cost < best_cost:
+                            best_cost = cost
+                            best_parent = m
+                    dp[(subset, k)] = (best_cost, best_parent)
+        
+        # Find best endpoint
+        full_set = frozenset(targets[1:])
+        best_cost = float("inf")
+        best_last = None
+
+        for k in targets[1:]:
+            cost = dp[(full_set, k)][0]
+            if cost < best_cost:
+                best_cost = cost
+                best_last = k
+        
+        # Reconstruct
+        order = []
+        subset = full_set
+        last = best_last
+        while last != start:
+            order.append(last)
+            foo, parent = dp[(subset, last)]
+            subset = subset - {last}
+            last = parent
+        order.reverse()
+        return [start] + order
 
     def traverse(self, vertex: Node):
         path = []

@@ -25,6 +25,8 @@ def csv_load(filename, mode="d"):
             for line in lines[1:]:
                 if not line:
                     continue
+                if not line[0]:
+                    continue
                 times.append(ast.literal_eval(line[0]))
                 distances.append(ast.literal_eval(line[1]))
                 targets.append(ast.literal_eval(line[2]))
